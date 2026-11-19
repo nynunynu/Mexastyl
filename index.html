@@ -78,17 +78,21 @@
     padding:12px 14px;margin:0 0 18px;font-size:13px;line-height:1.55;color:#7c4a1e}
   .phelp b{color:#5a3413}
   @media print{
-    @page{margin:12mm}
+    @page{margin:0}
     body{background:#fff}
+    .wrap{padding:0 10mm}
+    header{padding-top:9mm;border-color:#000}
     .screen-only,.tabs,.btn,.notesbar,.panel-col{display:none!important}
     .print-only{display:block!important}
     section.hide{display:none!important}
     .grid{grid-template-columns:1fr!important}
-    header{border-color:#000}
     .card{break-inside:avoid;border-color:#999}
+    #sz-output>.card{padding:9mm 5mm 8mm}
+    #sz-output>.card:not(:first-child){break-before:page}
+    #s-output>.card:not(:first-child){break-before:page}
     .logo{height:56px}
     .draw{background:#fff}
-    .draw svg{max-height:260px!important}
+    .draw svg{max-height:300px!important}
     #sz-output textarea,#s-steps,.steplist{max-height:none}
   }
 </style>
