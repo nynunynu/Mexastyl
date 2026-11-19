@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator konstrukcji stalowych</title>
+<style>
+  :root{--ink:#1C2530;--paper:#FBFBF9;--steel:#DEE3E8;--picket:#C4CCD4;
+    --dim:#3E6B7A;--accent:#E8792B;--line:#D5DAE0;--swiatlo:#B0762A;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#EFF1F3;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:16px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  h1{font-size:22px;margin:0;letter-spacing:-.3px}
+  header p{margin:4px 0 0;font-size:13px;color:#64748b}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;
+    padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn:active{opacity:.85}
+  .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 14px;
+    font-size:14px;font-weight:600;cursor:pointer;color:#64748b}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .grid{display:grid;gap:20px}
+  @media(min-width:860px){.grid{grid-template-columns:300px 1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px}
+  .panel{padding:16px}
+  .glabel{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    color:#64748b;margin:14px 0 8px}
+  .glabel:first-child{margin-top:0}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500}
+  .inp{display:flex;border:1px solid #C9CFD6;border-radius:6px;overflow:hidden}
+  .inp input{width:100%;border:none;padding:9px 10px;font:15px ui-monospace,monospace;outline:none}
+  .inp input:focus{box-shadow:inset 0 0 0 2px var(--accent)}
+  .inp .u{display:flex;align-items:center;background:#F1F3F5;padding:0 9px;
+    font:12px ui-monospace,monospace;color:#94a3b8}
+  .seg{display:grid;gap:6px;margin-top:6px}
+  .seg button{border:1px solid var(--line);background:#fff;border-radius:6px;
+    padding:9px 12px;text-align:left;font-size:13px;cursor:pointer}
+  .seg button.on{border-color:var(--accent);background:#FDF1E7;font-weight:600}
+  .info{background:#FBF3E9;border:1px solid #E6D2B4;border-radius:6px;padding:9px 11px;
+    font-size:12.5px;line-height:1.5;color:#7c5a25}
+  .info b{font-family:ui-monospace,monospace}
+  .chead{border-bottom:1px solid #EBEEF0;padding:11px 16px;font-size:14px;font-weight:700}
+  .chead .muted{font-weight:400;color:#94a3b8}
+  .draw{background:var(--paper);padding:12px}
+  svg{width:100%;max-height:480px;display:block}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px;
+    color:#64748b;font-weight:600;padding:8px 16px}
+  td{padding:10px 16px;border-top:1px solid #F0F2F4;font-family:ui-monospace,monospace}
+  td.name{font-family:inherit}
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#EBEEF0}
+  @media(min-width:640px){.mgrid{grid-template-columns:repeat(4,1fr)}}
+  .mcell{background:#fff;padding:14px}
+  .mcell .k{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:#64748b}
+  .mcell .v{font:700 18px ui-monospace,monospace;margin-top:3px}
+  .mcell .s{font:13px ui-monospace,monospace;color:#94a3b8}
+  .note{padding:12px 16px;font-size:12px;line-height:1.5;color:#94a3b8}
+  .err{padding:20px;color:#dc2626;font-size:14px}
+  .steplist{max-height:270px;overflow-y:auto;margin-top:2px;padding-right:4px}
+  .srow{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;align-items:center;margin-bottom:5px}
+  .srow .sn{font-size:12.5px;color:#64748b;font-weight:600}
+  .srow .inp input{padding:6px 8px;font-size:13px}
+  .stack>*+*{margin-top:20px}
+  .hide{display:none}
+  .print-only{display:none}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{height:46px;width:auto;border-radius:6px;display:block}
+  .notesbar{margin:-2px 0 18px}
+  .notesbar label{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#475569}
+  .notesbar input{flex:1;border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;outline:none;background:#fff}
+  .notesbar input:focus{box-shadow:0 0 0 2px var(--accent)}
+  .phelp{background:#FDF1E7;border:1px solid var(--accent);border-radius:8px;
+    padding:12px 14px;margin:0 0 18px;font-size:13px;line-height:1.55;color:#7c4a1e}
+  .phelp b{color:#5a3413}
+  @media print{
+    @page{margin:12mm}
+    body{background:#fff}
+    .screen-only,.tabs,.btn,.notesbar,.panel-col{display:none!important}
+    .print-only{display:block!important}
+    section.hide{display:none!important}
+    .grid{grid-template-columns:1fr!important}
+    header{border-color:#000}
+    .card{break-inside:avoid;border-color:#999}
+    .logo{height:56px}
+    .draw{background:#fff}
+    .draw svg{max-height:260px!important}
+    #sz-output textarea,#s-steps,.steplist{max-height:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <img class="logo" src="data:image/jpeg;base64,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Ox41hzY2gj78let1it1lZQp06RZW0TDmrNLuGZo61l9p4nOhlaG1BZrLHAZA+wj4hYC+73Ca3R259ZMaON3SbAXeiD7F0u+NsjHMe1r2uGRa4ZgryW4Ow/HUfKGWahEuefS6octnwWuJqy11wli77cG2VpTWWS9bbb8mG6IsLzUcU16q4zG6dvVwNcCD0M9bsvH8l8abew2onUBNJ5QtmAZAAAABU5qWCpyE8MUoGzpsDsvxVONQmcn+Q0FucCIx/QWTXGhMh1BdMjn++j8pWDY8tf7HxVXwtyYxz+uZr7na+ea6AgpYKUEQQxRBxzPQYG5/gvmahpKh/TmpYJXZZZvjBOX3hTJqkLe1u3sxA+mS1C1b+8fJ5mD7qL1hugrelm98Qa/3m6jyXtqnDBHTs6uGNkbBrDWNAH4BVF5drwzyyx7SepWsqkRPwERFGbhQVKgoCjWdkn4buRRKzsk/DdyKK3R2lezkmk7JD7jeQVZUaTskPuN5BVlWfuknXgIiLUyEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAUFSoKAo1nZJ+G7kUSs7JPw3ciit0dpXs5JpOyQ+43kFWVGk7JD7jeQVZVn7pJ14CIi1MhERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAFBUqCgKNZ2Sfhu5FErOyT8N3IordHaV7OSaXssPuN5BVkRV35knXgIiLQyEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAREQBERAEREAUFEQFGs7JPw3ciiIrdHElezk//9k=" alt="MEXA KOLOR">
+      <div>
+        <h1>Generator konstrukcji stalowych</h1>
+        <p class="screen-only">Rysunek dla spawacza i lista materiału. Podajesz <b>światło</b> — program liczy skrzydła.</p>
+        <p class="print-only" id="print-meta"></p>
+      </div>
+    </div>
+    <div class="screen-only" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
+      <button class="btn" onclick="saveProject()">💾 Zapisz</button>
+      <button class="btn" onclick="document.getElementById('loadfile').click()">📂 Wczytaj</button>
+      <button class="btn" onclick="doPrint()">Drukuj / PDF</button>
+    </div>
+    <input id="loadfile" type="file" accept="application/json,.json" style="display:none" onchange="loadProject(this.files&&this.files[0]);this.value='';">
+  </header>
+
+  <div class="notesbar screen-only">
+    <label>Uwagi / nazwa:
+      <input id="uwagi" type="text" placeholder="np. Brama sąsiada — opcjonalnie">
+    </label>
+  </div>
+
+  <div id="printhelp" class="phelp screen-only" style="display:none">
+    <b>Nie pojawiło się okno drukowania?</b>
+    Jesteś w podglądzie, który blokuje druk. Kliknij <b>Publish</b> i otwórz link w Safari —
+    albo pobierz plik i otwórz w przeglądarce — a potem <b>Drukuj / PDF</b> → „Zapisz jako PDF".
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-t="brama">Brama / przęsło</button>
+    <button class="tab" data-t="furtka">Furtka</button>
+    <button class="tab" data-t="double">Brama 2-skrzydłowa</button>
+    <button class="tab" data-t="wycinka">Wycinka / blacha</button>
+    <button class="tab" data-t="schody">Schody</button>
+    <button class="tab" data-t="szyba">Szyba / barierka</button>
+  </div>
+
+  <!-- ================= BRAMA / PRZĘSŁO ================= -->
+  <section id="page-brama">
+    <div class="grid">
+      <div class="card panel panel-col">
+        <div class="glabel">Wymiary zewnętrzne konstrukcji</div>
+        <div class="row">
+          <label class="f">Szerokość<span class="inp"><input id="b-width" type="number" value="400"><span class="u">cm</span></span></label>
+          <label class="f">Wysokość<span class="inp"><input id="b-height" type="number" value="150"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Profil ramy</div>
+        <div class="row">
+          <label class="f">Bok<span class="inp"><input id="b-face" type="number" value="10"><span class="u">cm</span></span></label>
+          <label class="f">Grubość<span class="inp"><input id="b-thick" type="number" value="3"><span class="u">mm</span></span></label>
+        </div>
+        <div class="glabel">Szczebelki</div>
+        <div class="row">
+          <label class="f">Ilość<span class="inp"><input id="b-count" type="number" value="10"><span class="u">szt</span></span></label><span></span>
+          <label class="f">Szerokość<span class="inp"><input id="b-pw" type="number" value="8"><span class="u">cm</span></span></label>
+          <label class="f">Głębokość<span class="inp"><input id="b-pd" type="number" value="2"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Rozstaw szczebelków</div>
+        <div class="seg" data-seg="b">
+          <button data-m="edges" class="on">Równe odstępy (także przy ramie)</button>
+          <button data-m="between">Równe tylko między szczeblami</button>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card"><div class="chead">Rysunek — widok z przodu</div><div id="b-draw" class="draw"></div></div>
+        <div class="card"><div class="chead">✂ Lista cięć <span class="muted">(mm)</span></div>
+          <table><thead><tr><th>Element</th><th>Ilość</th><th>Długość</th><th>Cięcie</th></tr></thead><tbody id="b-cuts"></tbody></table></div>
+        <div class="card"><div class="chead">Materiał i masa</div><div class="mgrid" id="b-mat"></div><p class="note" id="b-note"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FURTKA ================= -->
+  <section id="page-furtka" class="hide">
+    <div class="grid">
+      <div class="card panel panel-col">
+        <div class="glabel">Światło (między słupami)</div>
+        <div class="row">
+          <label class="f">Szerokość<span class="inp"><input id="f-width" type="number" value="100"><span class="u">cm</span></span></label>
+          <label class="f">Wysokość<span class="inp"><input id="f-height" type="number" value="150"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Zamek</div>
+        <div class="seg" data-seg="f-lock">
+          <button data-m="elektro" class="on">Z elektrozaczepem (−10 cm)</button>
+          <button data-m="zwykly">Bez elektrozaczepu (−8 cm)</button>
+        </div>
+        <div class="glabel">Profil ramy</div>
+        <div class="row">
+          <label class="f">Bok<span class="inp"><input id="f-face" type="number" value="10"><span class="u">cm</span></span></label>
+          <label class="f">Grubość<span class="inp"><input id="f-thick" type="number" value="3"><span class="u">mm</span></span></label>
+        </div>
+        <div class="glabel">Szczebelki</div>
+        <div class="row">
+          <label class="f">Ilość<span class="inp"><input id="f-count" type="number" value="4"><span class="u">szt</span></span></label><span></span>
+          <label class="f">Szerokość<span class="inp"><input id="f-pw" type="number" value="8"><span class="u">cm</span></span></label>
+          <label class="f">Głębokość<span class="inp"><input id="f-pd" type="number" value="2"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Rozstaw szczebelków</div>
+        <div class="seg" data-seg="f">
+          <button data-m="edges" class="on">Równe odstępy (także przy ramie)</button>
+          <button data-m="between">Równe tylko między szczeblami</button>
+        </div>
+      </div>
+      <div class="stack">
+        <div id="f-hint" class="info" style="margin-bottom:20px"></div>
+        <div class="card"><div class="chead">Rysunek — widok z przodu</div><div id="f-draw" class="draw"></div></div>
+        <div class="card"><div class="chead">✂ Lista cięć <span class="muted">(mm)</span></div>
+          <table><thead><tr><th>Element</th><th>Ilość</th><th>Długość</th><th>Cięcie</th></tr></thead><tbody id="f-cuts"></tbody></table></div>
+        <div class="card"><div class="chead">Materiał i masa</div><div class="mgrid" id="f-mat"></div><p class="note" id="f-note"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BRAMA 2-SKRZYDŁOWA ================= -->
+  <section id="page-double" class="hide">
+    <div class="grid">
+      <div class="card panel panel-col">
+        <div class="glabel">Światło (między słupami)</div>
+        <div class="row">
+          <label class="f">Szerokość<span class="inp"><input id="d-width" type="number" value="400"><span class="u">cm</span></span></label>
+          <label class="f">Wysokość<span class="inp"><input id="d-height" type="number" value="150"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Profil ramy</div>
+        <div class="row">
+          <label class="f">Bok<span class="inp"><input id="d-face" type="number" value="10"><span class="u">cm</span></span></label>
+          <label class="f">Grubość<span class="inp"><input id="d-thick" type="number" value="3"><span class="u">mm</span></span></label>
+        </div>
+        <div class="glabel">Szczebelki <span style="text-transform:none;font-weight:400">(na skrzydło)</span></div>
+        <div class="row">
+          <label class="f">Ilość<span class="inp"><input id="d-count" type="number" value="8"><span class="u">szt</span></span></label><span></span>
+          <label class="f">Szerokość<span class="inp"><input id="d-pw" type="number" value="8"><span class="u">cm</span></span></label>
+          <label class="f">Głębokość<span class="inp"><input id="d-pd" type="number" value="2"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Rozstaw szczebelków</div>
+        <div class="seg" data-seg="d">
+          <button data-m="edges" class="on">Równe odstępy (także przy ramie)</button>
+          <button data-m="between">Równe tylko między szczeblami</button>
+        </div>
+      </div>
+      <div class="stack">
+        <div id="d-hint" class="info" style="margin-bottom:20px"></div>
+        <div class="card"><div class="chead">Rysunek — widok z przodu</div><div id="d-draw" class="draw"></div></div>
+        <div class="card"><div class="chead">✂ Lista cięć <span class="muted">(mm · na 2 skrzydła)</span></div>
+          <table><thead><tr><th>Element</th><th>Ilość</th><th>Długość</th><th>Cięcie</th></tr></thead><tbody id="d-cuts"></tbody></table></div>
+        <div class="card"><div class="chead">Materiał i masa</div><div class="mgrid" id="d-mat"></div><p class="note" id="d-note"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WYCINKA / BLACHA (trapez + otwory) ============ -->
+  <section id="page-wycinka" class="hide">
+    <div class="grid">
+      <div class="card panel panel-col">
+        <div class="glabel">Trapez — wymiary</div>
+        <div class="row">
+          <label class="f">Podstawa<span class="inp"><input id="w-base" type="number" value="55"><span class="u">cm</span></span></label>
+          <label class="f">Grubość blachy<span class="inp"><input id="w-th" type="number" value="3"><span class="u">mm</span></span></label>
+        </div>
+        <div class="row">
+          <label class="f">Bok lewy (wys.)<span class="inp"><input id="w-hl" type="number" value="12"><span class="u">cm</span></span></label>
+          <label class="f">Bok prawy (wys.)<span class="inp"><input id="w-hr" type="number" value="8"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Otwory montażowe</div>
+        <p style="font-size:11.5px;color:#94a3b8;margin:-4px 0 8px;line-height:1.45">X = od lewej · Y = wysokość od podstawy · fi puste = pomiń otwór.</p>
+        <div class="row" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <label class="f">Otw.1 X<span class="inp"><input id="w-x1" type="number" value="10"><span class="u">cm</span></span></label>
+          <label class="f">Y<span class="inp"><input id="w-y1" type="number" value="1.5"><span class="u">cm</span></span></label>
+          <label class="f">fi<span class="inp"><input id="w-f1" type="number" value="10"><span class="u">mm</span></span></label>
+        </div>
+        <div class="row" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <label class="f">Otw.2 X<span class="inp"><input id="w-x2" type="number" value="50"><span class="u">cm</span></span></label>
+          <label class="f">Y<span class="inp"><input id="w-y2" type="number" value="1.5"><span class="u">cm</span></span></label>
+          <label class="f">fi<span class="inp"><input id="w-f2" type="number" value="10"><span class="u">mm</span></span></label>
+        </div>
+        <div class="row" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <label class="f">Otw.3 X<span class="inp"><input id="w-x3" type="number" value=""><span class="u">cm</span></span></label>
+          <label class="f">Y<span class="inp"><input id="w-y3" type="number" value=""><span class="u">cm</span></span></label>
+          <label class="f">fi<span class="inp"><input id="w-f3" type="number" value=""><span class="u">mm</span></span></label>
+        </div>
+        <div class="row" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <label class="f">Otw.4 X<span class="inp"><input id="w-x4" type="number" value=""><span class="u">cm</span></span></label>
+          <label class="f">Y<span class="inp"><input id="w-y4" type="number" value=""><span class="u">cm</span></span></label>
+          <label class="f">fi<span class="inp"><input id="w-f4" type="number" value=""><span class="u">mm</span></span></label>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card"><div class="chead">Rysunek — element do wycięcia</div><div id="w-draw" class="draw"></div></div>
+        <div class="card"><div class="chead">✂ Dane do wycinki <span class="muted">(mm)</span></div>
+          <table><tbody id="w-info"></tbody></table></div>
+        <div class="card"><div class="chead">Materiał i masa</div><div class="mgrid" id="w-mat"></div><p class="note" id="w-note"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCHODY (okładzina + korekta per stopień) ============ -->
+  <section id="page-schody" class="hide">
+    <div class="grid">
+      <div class="card panel panel-col">
+        <div class="glabel">Wymiary globalne (domyślne)</div>
+        <div class="row">
+          <label class="f">Wysokość<span class="inp"><input id="s-h" type="number" value="15" oninput="schodyGlobal()"><span class="u">cm</span></span></label>
+          <label class="f">Głębokość<span class="inp"><input id="s-d" type="number" value="30" oninput="schodyGlobal()"><span class="u">cm</span></span></label>
+        </div>
+        <div class="row">
+          <label class="f">Szerokość<span class="inp"><input id="s-w" type="number" value="100" oninput="renderSchody()"><span class="u">cm</span></span></label>
+          <label class="f">Grubość okładziny <span style="color:#DC2626;font-size:11px;font-weight:600">◆</span><span class="inp"><input id="s-t" type="number" value="2" oninput="renderSchody()"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Segmenty</div>
+        <p style="font-size:11.5px;color:#94a3b8;margin:-4px 0 6px;line-height:1.45">Każdy segment osobno — inna liczba stopni i wymiary. Edytuj pojedynczy stopień przy nierównej wylewce (✎ = zmieniony).</p>
+        <label class="f">Liczba segmentów<span class="inp"><input id="s-segcount" type="number" value="1" oninput="schodyBuildSegs()"><span class="u">szt</span></span></label>
+        <div id="s-segeditors"></div>
+      </div>
+      <div class="stack">
+        <div id="s-output"></div>
+        <div class="card"><div class="chead">Parametry (Blondel / wymiary)</div><div class="mgrid" id="s-mat"></div><p class="note" id="s-note"></p></div>
+      </div>
+    </div>
+  </section>
+<section id="page-szyba" class="hide">
+    <div class="grid">
+      <div class="card panel panel-col">
+        <div class="glabel">Wymiary globalne (domyślne stopnie)</div>
+        <div class="row">
+          <label class="f">Wysokość (pion)<span class="inp"><input id="sz-h" type="number" value="15" oninput="szybaGlobal()"><span class="u">cm</span></span></label>
+          <label class="f">Głębokość (poziom)<span class="inp"><input id="sz-d" type="number" value="30" oninput="szybaGlobal()"><span class="u">cm</span></span></label>
+        </div>
+        <div class="glabel">Tafle w projekcie</div>
+        <label class="f">Liczba tafli<span class="inp"><input id="sz-segcount" type="number" value="1" oninput="szybaBuildSegs()"><span class="u">szt</span></span></label>
+        <div id="sz-segeditors"></div>
+      </div>
+      <div class="stack"><div id="sz-output"></div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- stan rozstawu / trybów ---------- */
+var seg={b:"edges",f:"edges",d:"edges","f-lock":"elektro"};
+document.querySelectorAll(".seg").forEach(function(s){
+  var key=s.dataset.seg;
+  s.querySelectorAll("button").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      seg[key]=btn.dataset.m;
+      s.querySelectorAll("button").forEach(function(x){x.classList.remove("on")});
+      btn.classList.add("on"); renderAll();
+    });
+  });
+});
+document.querySelectorAll("input").forEach(function(i){i.addEventListener("input",renderAll)});
+
+/* ---------- przełączanie zakładek ---------- */
+var pages={brama:"page-brama",furtka:"page-furtka",double:"page-double",wycinka:"page-wycinka",schody:"page-schody",szyba:"page-szyba"};
+var typeNames={brama:"Brama / przęsło",furtka:"Furtka",double:"Brama 2-skrzydłowa",wycinka:"Wycinka / blacha",schody:"Schody",szyba:"Szyba / barierka"};
+var activeType=typeNames.brama;
+
+function activate(key){
+  if(!pages[key]) key="brama";
+  document.querySelectorAll("#tabs .tab").forEach(function(x){x.classList.toggle("on",x.dataset.t===key)});
+  activeType=typeNames[key];
+  for(var k in pages) document.getElementById(pages[k]).classList.toggle("hide",k!==key);
+}
+document.querySelectorAll("#tabs .tab").forEach(function(t){
+  t.addEventListener("click",function(){
+    activate(t.dataset.t);
+    try{history.replaceState(null,"","#"+t.dataset.t);}catch(e){location.hash=t.dataset.t;}
+  });
+});
+var initKey=(location.hash||"").replace("#","");
+activate(pages[initKey]?initKey:"brama");
+
+function inPreview(){try{return window.self!==window.top}catch(e){return true}}
+
+function doPrint(){
+  var u=(document.getElementById("uwagi").value||"").trim();
+  var d=new Date().toLocaleDateString("pl-PL");
+  document.getElementById("print-meta").textContent=(u?u+"  ·  ":"")+activeType+"  ·  "+d;
+  document.getElementById("printhelp").style.display="block";  // wskazówka na wypadek blokady
+  try{window.print();}catch(e){}
+}
+
+/* ---------- helpery ---------- */
+function val(id){return parseFloat(document.getElementById(id).value)||0}
+function fmt(n,d){return Number(n).toLocaleString("pl-PL",{minimumFractionDigits:d||0,maximumFractionDigits:d||0})}
+function fmtN(n){return (Math.round(n*100)/100).toLocaleString("pl-PL",{maximumFractionDigits:2})}
+function rect(x,y,w,h,fill,sw){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'" stroke="var(--ink)" stroke-width="'+sw+'"/>';}
+function line(x1,y1,x2,y2,sw){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="var(--ink)" stroke-width="'+sw+'"/>';}
+
+function computeLeaf(cw,ch,face,thick,count,pw,pd,mode){
+  var internalH=ch-2*face, picketLen=internalH;
+  var internalW=cw-2*face, free=internalW-count*pw;
+  var gaps=mode==="edges"?count+1:count-1, gap=gaps>0?free/gaps:0;
+  var xs=[]; for(var i=0;i<count;i++) xs.push(mode==="edges"?face+gap*(i+1)+pw*i:face+i*(pw+gap));
+  var fm=face*10, shsKgM=(fm*fm-(fm-2*thick)*(fm-2*thick))*0.00785;
+  var frameLenM=(2*cw+2*ch)/100, frameKg=frameLenM*shsKgM;
+  var pKgM=(pw*10)*(pd*10)*0.00785, picketLenM=count*picketLen/100, picketKg=picketLenM*pKgM;
+  return {internalW:internalW,internalH:internalH,picketLen:picketLen,free:free,gap:gap,xs:xs,
+    frameLenM:frameLenM,frameKg:frameKg,picketLenM:picketLenM,picketKg:picketKg,shsKgM:shsKgM,pKgM:pKgM,
+    valid:free>=0&&internalH>0&&count>0};
+}
+
+/* rysuje jedno skrzydło (rama + szczebelki) z przesunięciem ox [cm] */
+function frameSVG(ox,cw,ch,face,pw,xs,sw){
+  var X=ox*10,W=cw*10,H=ch*10,P=face*10,PW=pw*10,s='';
+  s+=rect(X,0,W,H,'var(--steel)',sw*1.4);
+  s+=rect(X+P,P,W-2*P,H-2*P,'var(--paper)',sw);
+  [[0,0,P,P],[W,0,W-P,P],[0,H,P,H-P],[W,H,W-P,H-P]].forEach(function(c){s+=line(X+c[0],c[1],X+c[2],c[3],sw);});
+  xs.forEach(function(x){s+=rect(X+x*10,P,PW,H-2*P,'var(--picket)',sw*0.8);});
+  return s;
+}
+
+function dim(x1,y1,x2,y2,label,offset,vertical,fs,sw,color){
+  color=color||"var(--dim)";
+  var ox=vertical?offset:0,oy=vertical?0:offset;
+  var tx=(x1+x2)/2+(vertical?offset+fs*1.1:0), ty=(y1+y2)/2+(vertical?0:offset+fs*1.3);
+  var g='<g stroke="'+color+'" stroke-width="'+sw+'" fill="'+color+'">';
+  g+='<line x1="'+x1+'" y1="'+y1+'" x2="'+(x1+ox)+'" y2="'+(y1+oy)+'" opacity="0.5"/>';
+  g+='<line x1="'+x2+'" y1="'+y2+'" x2="'+(x2+ox)+'" y2="'+(y2+oy)+'" opacity="0.5"/>';
+  g+='<line x1="'+(x1+ox)+'" y1="'+(y1+oy)+'" x2="'+(x2+ox)+'" y2="'+(y2+oy)+'" marker-start="url(#a)" marker-end="url(#a)"/>';
+  g+='<text x="'+tx+'" y="'+ty+'" font-size="'+fs+'" font-family="ui-monospace,monospace" text-anchor="middle" stroke="none"'+(vertical?' transform="rotate(-90 '+tx+' '+ty+')"':'')+'>'+label+'</text>';
+  return g+'</g>';
+}
+function marker(fs){return '<defs><marker id="a" markerWidth="14" markerHeight="14" refX="'+(7*fs/14)+'" refY="'+(5*fs/14)+'" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10"><path d="M0,0 L10,5 L0,10" fill="var(--dim)" transform="scale('+(fs/14)+')"/></marker><marker id="ar" markerWidth="14" markerHeight="14" refX="'+(7*fs/14)+'" refY="'+(5*fs/14)+'" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10"><path d="M0,0 L10,5 L0,10" fill="#DC2626" transform="scale('+(fs/14)+')"/></marker></defs>';}
+function dashRect(x,y,w,h,color,sw){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="none" stroke="'+color+'" stroke-width="'+sw+'" stroke-dasharray="'+(sw*4)+' '+(sw*3)+'"/>';}
+
+function fillCuts(id,rows){
+  document.getElementById(id).innerHTML=rows.map(function(r){
+    return '<tr><td class="name">'+r[0]+'</td><td>'+r[1]+' szt</td><td style="font-weight:600">'+fmt(r[2])+' mm</td><td style="color:'+(r[4]?'var(--accent)':'var(--ink)')+'">'+r[3]+'</td></tr>';
+  }).join("");
+}
+function fillMat(id,cells){
+  document.getElementById(id).innerHTML=cells.map(function(c){
+    return '<div class="mcell"><div class="k">'+c[0]+'</div><div class="v" style="color:'+(c[3]?'var(--accent)':'var(--ink)')+'">'+c[2]+'</div>'+(c[1]?'<div class="s">'+c[1]+'</div>':'')+'</div>';
+  }).join("");
+}
+
+/* ============ RENDER: BRAMA / PRZĘSŁO ============ */
+function renderBrama(){
+  var cw=val("b-width"),ch=val("b-height"),face=val("b-face"),thick=val("b-thick"),
+      count=Math.round(val("b-count")),pw=val("b-pw"),pd=val("b-pd");
+  var L=computeLeaf(cw,ch,face,thick,count,pw,pd,seg.b);
+  var W=cw*10,H=ch*10,maxD=Math.max(W,H),pad=maxD*0.2,fs=maxD/40,sw=fs/10;
+  var dw=document.getElementById("b-draw");
+  if(!L.valid){dw.innerHTML='<div class="err">Szczebelki nie mieszczą się w świetle ramy. Zmień ilość/szerokość lub wymiary.</div>';}
+  else{
+    var s='<svg viewBox="'+(-pad)+' '+(-pad*0.9)+' '+(W+pad*2)+' '+(H+pad*1.9)+'">'+marker(fs);
+    s+=frameSVG(0,cw,ch,face,pw,L.xs,sw);
+    s+=dim(0,H,W,H,fmt(W),pad*0.62,false,fs,sw);
+    s+=dim(W,0,W,H,fmt(H),pad*0.62,true,fs,sw);
+    if(L.xs.length>=2) s+=dim((L.xs[0]+pw)*10,face*10,L.xs[1]*10,face*10,fmt(L.gap*10),-pad*0.28,false,fs,sw);
+    s+='<text x="'+(face*10+fs*0.4)+'" y="'+(-pad*0.28)+'" font-family="ui-monospace,monospace" font-size="'+(fs*0.92)+'" fill="var(--ink)">PROFIL '+fmt(face*10)+'×'+fmt(face*10)+'×'+fmt(thick)+'</text>';
+    s+='</svg>'; dw.innerHTML=s;
+  }
+  fillCuts("b-cuts",[
+    ["Profil ramy — poziomy",2,W,"45° oba końce",true],
+    ["Profil ramy — pionowy",2,H,"45° oba końce",true],
+    ["Szczebel "+fmt(pw*10)+"×"+fmt(pd*10),count,L.picketLen*10,"90° proste",false]]);
+  fillMat("b-mat",[
+    ["Profil ramy",fmt(L.frameLenM,2)+" m",fmt(L.frameKg,1)+" kg",false],
+    ["Szczebelki",fmt(L.picketLenM,2)+" m",fmt(L.picketKg,1)+" kg",false],
+    ["Masa całkowita","",fmt(L.frameKg+L.picketKg,1)+" kg",true],
+    ["Odstęp światła",fmt(L.gap,1)+" cm",fmt(L.gap*10)+" mm",false]]);
+  document.getElementById("b-note").textContent="Stal 7,85 g/cm³. Profil zamknięty "+fmt(face*10)+"×"+fmt(face*10)+"×"+fmt(thick)+", szczebelki płaskownik pełny "+fmt(pw*10)+"×"+fmt(pd*10)+". Wartości orientacyjne.";
+}
+
+/* ============ RENDER: FURTKA ============ */
+function renderFurtka(){
+  var sw_=val("f-width"),sh=val("f-height"),face=val("f-face"),thick=val("f-thick"),
+      count=Math.round(val("f-count")),pw=val("f-pw"),pd=val("f-pd");
+  var ded=seg["f-lock"]==="elektro"?10:8;
+  var cw=sw_-ded, ch=sh, sideGap=ded/2;
+  document.getElementById("f-hint").innerHTML="Światło <b>"+fmt(sw_)+"×"+fmt(sh)+"</b> · "+(seg["f-lock"]==="elektro"?"z elektrozaczepem −10 cm":"bez elektrozaczepu −8 cm")+" → konstrukcja furtki <b>"+fmt(cw)+"×"+fmt(ch)+" cm</b>. Luz rozłożony po "+fmt(sideGap,1)+" cm na stronę (strona zaczepu zwykle szersza).";
+  var L=computeLeaf(cw,ch,face,thick,count,pw,pd,seg.f);
+  var SW=sw_*10,SH=sh*10,W=cw*10,maxD=Math.max(SW,SH),pad=maxD*0.2,fs=maxD/40,sw=fs/10;
+  var dw=document.getElementById("f-draw");
+  if(!L.valid||cw<=0){dw.innerHTML='<div class="err">Konstrukcja wychodzi za mała lub szczebelki się nie mieszczą. Zmień światło / szczebelki.</div>';}
+  else{
+    var s='<svg viewBox="'+(-pad)+' '+(-pad*0.9)+' '+(SW+pad*2)+' '+(SH+pad*1.9)+'">'+marker(fs);
+    s+=dashRect(0,0,SW,SH,'var(--swiatlo)',sw);                 // światło
+    s+=frameSVG(sideGap,cw,ch,face,pw,L.xs,sw);                 // furtka wyśrodkowana
+    s+=dim(0,SH,SW,SH,fmt(SW),pad*0.62,false,fs,sw,'var(--swiatlo)');   // światło szer.
+    s+=dim(SW,0,SW,SH,fmt(SH),pad*0.62,true,fs,sw);                     // wysokość
+    s+=dim(0,0,sideGap*10,0,fmt(sideGap*10),-pad*0.28,false,fs,sw);     // luz lewy
+    s+=dim((sideGap+cw)*10,0,SW,0,fmt(sideGap*10),-pad*0.28,false,fs,sw); // luz prawy
+    s+='<text x="'+(sideGap*10+fs*0.4)+'" y="'+(SH+pad*0.32)+'" font-family="ui-monospace,monospace" font-size="'+(fs*0.9)+'" fill="var(--ink)">konstrukcja '+fmt(W)+' szer.</text>';
+    s+='</svg>'; dw.innerHTML=s;
+  }
+  fillCuts("f-cuts",[
+    ["Profil ramy — poziomy",2,cw*10,"45° oba końce",true],
+    ["Profil ramy — pionowy",2,ch*10,"45° oba końce",true],
+    ["Szczebel "+fmt(pw*10)+"×"+fmt(pd*10),count,L.picketLen*10,"90° proste",false]]);
+  fillMat("f-mat",[
+    ["Profil ramy",fmt(L.frameLenM,2)+" m",fmt(L.frameKg,1)+" kg",false],
+    ["Szczebelki",fmt(L.picketLenM,2)+" m",fmt(L.picketKg,1)+" kg",false],
+    ["Masa całkowita","",fmt(L.frameKg+L.picketKg,1)+" kg",true],
+    ["Odstęp światła",fmt(L.gap,1)+" cm",fmt(L.gap*10)+" mm",false]]);
+  document.getElementById("f-note").textContent="Konstrukcja "+fmt(cw)+"×"+fmt(ch)+" cm ze światła "+fmt(sw_)+"×"+fmt(sh)+". Odstęp na zamek "+ded+" cm ("+(seg["f-lock"]==="elektro"?"elektrozaczep":"zamek zwykły")+"). Masy orientacyjne, stal 7,85 g/cm³.";
+}
+
+/* ============ RENDER: BRAMA 2-SKRZYDŁOWA ============ */
+function renderDouble(){
+  var sw_=val("d-width"),sh=val("d-height"),face=val("d-face"),thick=val("d-thick"),
+      count=Math.round(val("d-count")),pw=val("d-pw"),pd=val("d-pd");
+  var outer=7.5, lock=1;                       // luz zawias / zamek [cm]
+  var ded=2*outer+lock;                         // całkowite odjęcie = 16 cm
+  var leafW=(sw_-ded)/2, ch=sh;
+  document.getElementById("d-hint").innerHTML="Światło <b>"+fmt(sw_)+"×"+fmt(sh)+"</b> · odejmujemy "+fmt(ded)+" cm (2×"+fmt(outer,1)+" zawias + "+fmt(lock)+" zamek) → każde skrzydło <b>"+fmt(leafW,1)+"×"+fmt(ch)+" cm</b>. Szczelina zamka "+fmt(lock)+" cm zaznaczona między skrzydłami.";
+  var L=computeLeaf(leafW,ch,face,thick,count,pw,pd,seg.d);
+  var SW=sw_*10,SH=sh*10,W=leafW*10,maxD=Math.max(SW,SH),pad=maxD*0.2,fs=maxD/40,sw=fs/10;
+  var leaf2x=outer+leafW+lock, lockC=outer+leafW+lock/2;   // skrzydło prawe / środek zamka [cm]
+  var dw=document.getElementById("d-draw");
+  if(!L.valid||leafW<=0){dw.innerHTML='<div class="err">Skrzydła wychodzą za małe lub szczebelki się nie mieszczą. Zmień światło / szczebelki.</div>';}
+  else{
+    var s='<svg viewBox="'+(-pad)+' '+(-pad*0.9)+' '+(SW+pad*2)+' '+(SH+pad*1.9)+'">'+marker(fs);
+    s+=dashRect(0,0,SW,SH,'var(--swiatlo)',sw);          // światło
+    s+=frameSVG(outer,leafW,ch,face,pw,L.xs,sw);         // skrzydło lewe
+    s+=frameSVG(leaf2x,leafW,ch,face,pw,L.xs,sw);        // skrzydło prawe
+    s+=dashRect((lockC-lock/2)*10,face*10,lock*10,SH-2*face*10,'var(--accent)',sw*1.3); // symbol zamka 1 cm
+    s+=dim(0,SH,SW,SH,fmt(SW),pad*0.62,false,fs,sw,'var(--swiatlo)');   // światło szer.
+    s+=dim(SW,0,SW,SH,fmt(SH),pad*0.62,true,fs,sw);                     // wysokość
+    s+=dim(0,0,outer*10,0,fmt(outer*10),-pad*0.28,false,fs,sw);         // luz lewy
+    s+=dim((sw_-outer)*10,0,SW,0,fmt(outer*10),-pad*0.28,false,fs,sw);  // luz prawy
+    s+=dim(outer*10,SH*0.4,(outer+leafW)*10,SH*0.4,fmt(W),-pad*0.05,false,fs,sw); // szer. skrzydła
+    s+='<text x="'+(lockC*10)+'" y="'+(-pad*0.5)+'" font-family="ui-monospace,monospace" font-size="'+(fs*0.9)+'" fill="var(--accent)" text-anchor="middle">zamek '+fmt(lock*10)+' mm</text>';
+    s+='</svg>'; dw.innerHTML=s;
+  }
+  var one=L.frameKg+L.picketKg;
+  fillCuts("d-cuts",[
+    ["Profil ramy — poziomy",4,leafW*10,"45° oba końce",true],
+    ["Profil ramy — pionowy",4,ch*10,"45° oba końce",true],
+    ["Szczebel "+fmt(pw*10)+"×"+fmt(pd*10),count*2,L.picketLen*10,"90° proste",false]]);
+  fillMat("d-mat",[
+    ["Profil ramy (2 skrz.)",fmt(L.frameLenM*2,2)+" m",fmt(L.frameKg*2,1)+" kg",false],
+    ["Szczebelki (2 skrz.)",fmt(L.picketLenM*2,2)+" m",fmt(L.picketKg*2,1)+" kg",false],
+    ["Masa całkowita","",fmt(one*2,1)+" kg",true],
+    ["Odstęp światła",fmt(L.gap,1)+" cm",fmt(L.gap*10)+" mm",false]]);
+  document.getElementById("d-note").textContent="Każde skrzydło "+fmt(leafW,1)+"×"+fmt(ch)+" cm = (światło "+fmt(sw_)+" − "+fmt(ded)+")÷2, gdzie 16 cm = 2×"+fmt(outer,1)+" zawias + "+fmt(lock)+" zamek. Masy dla 2 skrzydeł, stal 7,85 g/cm³, orientacyjnie.";
+}
+
+function renderWycinka(){
+  var base=val("w-base"),hl=val("w-hl"),hr=val("w-hr"),th=val("w-th");
+  var holes=[];
+  for(var i=1;i<=4;i++){var f=val("w-f"+i); if(f>0) holes.push({x:val("w-x"+i),y:val("w-y"+i),f:f});}
+  var dw=document.getElementById("w-draw");
+  if(base<=0||hl<=0||hr<=0){dw.innerHTML='<div class="err">Podaj dodatnie wymiary trapezu (podstawa i boki).</div>';
+    document.getElementById("w-info").innerHTML="";document.getElementById("w-mat").innerHTML="";document.getElementById("w-note").textContent="";return;}
+  var B=base*10,HL=hl*10,HR=hr*10,Hmax=Math.max(HL,HR);
+  var maxD=Math.max(B,Hmax),pad=maxD*0.26,fs=maxD/26,sw=fs/10;
+  var dc='stroke-dasharray="'+(sw*3)+' '+(sw*2)+'"';
+  var s='<svg viewBox="'+(-pad*1.5)+' '+(-pad*2.2)+' '+(B+pad*3.0)+' '+(Hmax+pad*4.0)+'">'+marker(fs);
+  s+='<polygon points="0,'+Hmax+' '+B+','+Hmax+' '+B+','+(Hmax-HR)+' 0,'+(Hmax-HL)+'" fill="var(--steel)" stroke="var(--ink)" stroke-width="'+(sw*1.4)+'"/>';
+  // pozioma oś przez otwory (jeśli istnieją)
+  if(holes.length){var cyc=Hmax-holes[0].y*10;
+    s+='<line x1="'+(-pad*0.35)+'" y1="'+cyc+'" x2="'+(B+pad*0.35)+'" y2="'+cyc+'" stroke="var(--dim)" stroke-width="'+(sw*0.6)+'" '+dc+' opacity="0.55"/>';}
+  holes.forEach(function(h,i){
+    var cx=h.x*10,cy=Hmax-h.y*10,r=h.f/2;
+    // pionowa oś przez otwór
+    s+='<line x1="'+cx+'" y1="'+(-pad*0.7)+'" x2="'+cx+'" y2="'+Hmax+'" stroke="var(--dim)" stroke-width="'+(sw*0.6)+'" '+dc+' opacity="0.5"/>';
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="var(--paper)" stroke="var(--ink)" stroke-width="'+sw+'"/>';
+    s+='<line x1="'+(cx-r*1.7)+'" y1="'+cy+'" x2="'+(cx+r*1.7)+'" y2="'+cy+'" stroke="var(--ink)" stroke-width="'+(sw*0.6)+'"/><line x1="'+cx+'" y1="'+(cy-r*1.7)+'" x2="'+cx+'" y2="'+(cy+r*1.7)+'" stroke="var(--ink)" stroke-width="'+(sw*0.6)+'"/>';
+    // Ø z odnośnikiem
+    var lx=cx+fs*1.1, ly=cy-r-fs*1.2;
+    s+='<line x1="'+(cx+r*0.7)+'" y1="'+(cy-r*0.7)+'" x2="'+lx+'" y2="'+ly+'" stroke="var(--accent)" stroke-width="'+(sw*0.7)+'"/>';
+    s+='<text x="'+(lx+fs*0.3)+'" y="'+(ly-fs*0.15)+'" font-size="'+(fs*0.8)+'" font-family="ui-monospace,monospace" fill="var(--accent)">Ø'+fmt(h.f)+' mm</text>';
+    // X (od lewej) nad płytą, pietrowo
+    var xlev=-pad*(0.8+i*0.62);
+    s+=dim(0,0,cx,0,fmt(h.x)+' cm'+((holes.length>1&&i===holes.length-1)?'  (od kraw.)':''),xlev,false,fs*0.9,sw);
+    // wysokość (mm) OBOK otworu, opis poziomo i czytelnie
+    var right=cx<B/2, mx=cx+(right?pad*0.52:-pad*0.52);
+    s+='<g stroke="#DC2626" stroke-width="'+sw+'" fill="#DC2626">';
+    s+='<line x1="'+cx+'" y1="'+Hmax+'" x2="'+mx+'" y2="'+Hmax+'" opacity="0.55"/><line x1="'+cx+'" y1="'+cy+'" x2="'+mx+'" y2="'+cy+'" opacity="0.55"/>';
+    s+='<line x1="'+mx+'" y1="'+Hmax+'" x2="'+mx+'" y2="'+cy+'" marker-start="url(#ar)" marker-end="url(#ar)"/>';
+    s+='<text x="'+(mx+(right?fs*0.45:-fs*0.45))+'" y="'+((Hmax+cy)/2+fs*0.35)+'" font-size="'+(fs*0.92)+'" font-weight="700" font-family="ui-monospace,monospace" fill="#DC2626" stroke="none" text-anchor="'+(right?'start':'end')+'">'+fmt(h.y*10)+' mm</text></g>';
+  });
+  s+=dim(0,Hmax,B,Hmax,fmt(base)+' cm',pad*0.7,false,fs,sw);
+  s+=dim(0,Hmax-HL,0,Hmax,fmt(hl)+' cm',-pad*0.6,true,fs,sw);
+  s+=dim(B,Hmax-HR,B,Hmax,fmt(hr)+' cm',pad*0.6,true,fs,sw);
+  s+='</svg>'; dw.innerHTML=s;
+
+  var slant=Math.sqrt(B*B+(HL-HR)*(HL-HR));
+  function ir(k,v){return '<tr><td class="name">'+k+'</td><td style="text-align:right">'+v+'</td></tr>';}
+  var info=ir("Podstawa",fmt(B)+" mm")+ir("Bok lewy",fmt(HL)+" mm")+ir("Bok prawy",fmt(HR)+" mm")+ir("Góra (skos)",fmt(slant,0)+" mm");
+  holes.forEach(function(h,i){info+=ir("Otwór "+(i+1),"fi "+fmt(h.f)+" · X="+fmt(h.x*10)+" · Y="+fmt(h.y*10));});
+  document.getElementById("w-info").innerHTML=info;
+
+  var area=(hl+hr)/2*base, kg=area*(th/10)*0.00785, perim=(B+HL+HR+slant)/10;
+  fillMat("w-mat",[
+    ["Pole blachy","",fmt(area,0)+" cm²",false],
+    ["Masa (stal)","",fmt(kg,2)+" kg",true],
+    ["Grubość","",fmt(th)+" mm",false],
+    ["Otwory","",holes.length+"× fi",false]]);
+  document.getElementById("w-note").textContent="Trapez z blachy "+fmt(th)+" mm · kontur + "+holes.length+" otw. montażowych. Obwód cięcia ≈ "+fmt(perim,0)+" cm. Wymiary w mm, masa dla stali 7,85 g/cm³.";
+}
+
+/* ============ SCHODY (segmenty osobne) ============ */
+var schodyState={segs:[]};
+function sVal(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0}
+function newSeg(cnt,h,d){var st=[];for(var i=0;i<cnt;i++)st.push({h:h,d:d,mh:false,md:false});return {count:cnt,steps:st};}
+function schodyBuildSegs(){
+  var n=Math.round(sVal("s-segcount"));if(n<1)n=1;if(n>8)n=8;
+  var h=sVal("s-h"),d=sVal("s-d");if(!schodyState._sb)schodyState._sb=[];
+  if(n<schodyState.segs.length){schodyState._sb=schodyState.segs.slice(n).concat(schodyState._sb);schodyState.segs=schodyState.segs.slice(0,n);}
+  else{while(schodyState.segs.length<n)schodyState.segs.push(schodyState._sb.length?schodyState._sb.shift():newSeg(4,h,d));}
+  schodyEditors();renderSchody();
+}
+function stepRows(si){
+  var seg=schodyState.segs[si],html="";
+  seg.steps.forEach(function(st,i){
+    html+='<div class="srow"><span class="sn" id="sn'+si+'_'+i+'">Stopień '+(i+1)+((st.mh||st.md)?' ✎':'')+'</span>'
+      +'<span class="inp"><input type="number" value="'+st.h+'" oninput="stepEdit('+si+','+i+',&#39;h&#39;,this.value)"><span class="u">cm</span></span>'
+      +'<span class="inp"><input type="number" value="'+st.d+'" oninput="stepEdit('+si+','+i+',&#39;d&#39;,this.value)"><span class="u">cm</span></span></div>';
+  });
+  return html;
+}
+function schodyEditors(){
+  var c=document.getElementById("s-segeditors");if(!c)return;var html="";
+  schodyState.segs.forEach(function(seg,si){
+    html+='<div style="margin-top:12px;padding-top:10px;border-top:1px solid #EEF1F3">';
+    html+='<label class="f" style="margin-bottom:6px">Segment '+(si+1)+' — stopni<span class="inp"><input id="s-cnt'+si+'" type="number" value="'+seg.count+'" oninput="schodySegCount('+si+')"><span class="u">szt</span></span></label>';
+    html+='<div class="steplist" id="s-sl'+si+'">'+stepRows(si)+'</div></div>';
+  });
+  c.innerHTML=html;
+}
+function schodySegCount(si){
+  var seg=schodyState.segs[si];if(!seg)return;
+  var n=Math.round(sVal("s-cnt"+si));if(n<1)n=1;if(n>40)n=40;
+  var h=sVal("s-h"),d=sVal("s-d");if(!seg._buf)seg._buf=[];
+  if(n<seg.steps.length){seg._buf=seg.steps.slice(n).concat(seg._buf);seg.steps=seg.steps.slice(0,n);}
+  else{while(seg.steps.length<n)seg.steps.push(seg._buf.length?seg._buf.shift():{h:h,d:d,mh:false,md:false});}
+  seg.count=n;
+  var sl=document.getElementById("s-sl"+si);if(sl)sl.innerHTML=stepRows(si);
+  renderSchody();
+}
+function schodyGlobal(){
+  var h=sVal("s-h"),d=sVal("s-d");
+  schodyState.segs.forEach(function(seg,si){seg.steps.forEach(function(st){if(!st.mh)st.h=h;if(!st.md)st.d=d;});var sl=document.getElementById("s-sl"+si);if(sl)sl.innerHTML=stepRows(si);});
+  renderSchody();
+}
+function stepEdit(si,i,f,v){var seg=schodyState.segs[si];if(!seg)return;var st=seg.steps[i];if(!st)return;v=parseFloat(v)||0;
+  if(f==='h'){st.h=v;st.mh=true;}else{st.d=v;st.md=true;}var e=document.getElementById("sn"+si+"_"+i);if(e)e.textContent="Stopień "+(i+1)+" ✎";renderSchody();}
+function segSVG(seg,t,w){
+  var steps=seg.steps,X=[0],Y=[0];
+  for(var i=0;i<steps.length;i++){X.push(X[i]+steps[i].d);Y.push(Y[i]+steps[i].h);}
+  var run=X[steps.length],rise=Y[steps.length];
+  if(run<=0||rise<=0)return '<div class="err">Podaj dodatnie wymiary stopni.</div>';
+  var maxD=Math.max(run,rise),pad=maxD*0.17,fs=maxD/26,sw=fs/11,WOOD="#C8955A";
+  var fy=function(y){return rise-y;};
+  var s='<svg viewBox="'+(-pad*1.7)+' '+(-pad*1.4)+' '+(run+pad*3.1)+' '+(rise+pad*2.9)+'">'+marker(fs);
+  var pts='0,'+fy(0);
+  for(var i=0;i<steps.length;i++)pts+=' '+X[i]+','+fy(Y[i+1])+' '+X[i+1]+','+fy(Y[i+1]);
+  pts+=' '+run+','+fy(0);
+  s+='<polygon points="'+pts+'" fill="#D9DEE3" stroke="var(--ink)" stroke-width="'+sw+'"/>';
+  for(var i=0;i<steps.length;i++){
+    var riserCut=(i===0)?steps[i].h:steps[i].h-t,treadCut=steps[i].d+t,riserBottom=(i===0)?0:Y[i]+t;
+    s+='<rect x="'+(X[i]-t)+'" y="'+fy(Y[i+1])+'" width="'+t+'" height="'+(Y[i+1]-riserBottom)+'" fill="'+WOOD+'" stroke="var(--ink)" stroke-width="'+(sw*0.7)+'"/>';
+    s+='<rect x="'+(X[i]-t)+'" y="'+fy(Y[i+1]+t)+'" width="'+(X[i+1]-(X[i]-t))+'" height="'+t+'" fill="'+WOOD+'" stroke="var(--ink)" stroke-width="'+(sw*0.7)+'"/>';
+    s+='<text x="'+(X[i]-t-fs*0.35)+'" y="'+(fy((riserBottom+Y[i+1])/2)+fs*0.3)+'" font-size="'+(fs*0.72)+'" font-family="ui-monospace,monospace" fill="#DC2626" text-anchor="end">'+fmt(riserCut,1)+'</text>';
+    s+='<text x="'+((X[i]-t+X[i+1])/2)+'" y="'+(fy(Y[i+1]+t)-fs*0.35)+'" font-size="'+(fs*0.72)+'" font-family="ui-monospace,monospace" fill="var(--ink)" text-anchor="middle">'+fmt(treadCut,1)+'</text>';
+  }
+  s+=dim(0,fy(0),0,fy(rise),fmt(rise,0),-pad*0.55,true,fs,sw);
+  s+=dim(0,fy(0),run,fy(0),fmt(run,0),pad*0.5,false,fs,sw);
+  return s+'</svg>';
+}
+function renderSchody(){
+  var out=document.getElementById("s-output");if(!out)return;
+  if(!schodyState.segs||!schodyState.segs.length){schodyBuildSegs();return;}
+  var t=sVal("s-t"),w=sVal("s-w"),html="";
+  schodyState.segs.forEach(function(seg,si){
+    html+='<div class="card"><div class="chead">Segment '+(si+1)+' — przekrój + elementy (okładzina)</div>';
+    html+='<div class="draw">'+segSVG(seg,t,w)+'</div>';
+    html+='<table><thead><tr><th>Stopień</th><th>Podstopnica (pion)</th><th>Stopień (poziom)</th></tr></thead><tbody>';
+    seg.steps.forEach(function(st,i){var rc=(i===0)?st.h:st.h-t,tc=st.d+t;
+      html+='<tr><td class="name">'+(i+1)+'</td><td class="v" style="color:#DC2626">'+fmt(rc,1)+' × '+fmt(w)+' cm</td><td class="v">'+fmt(tc,1)+' × '+fmt(w)+' cm</td></tr>';});
+    html+='</tbody></table></div>';
+  });
+  out.innerHTML=html;
+  var seg0=schodyState.segs[0],st0=seg0.steps[0]||{h:0,d:0},X=0,Y=0;
+  seg0.steps.forEach(function(st){X+=st.d;Y+=st.h;});
+  var blon=2*st0.h+st0.d,ang=st0.d?Math.atan(st0.h/st0.d)*180/Math.PI:0,bad=!(blon>=60&&blon<=66);
+  fillMat("s-mat",[
+    ["Blondel 2×wys+głęb","ideał 63 · pas 60–66",fmt(blon,1)+" cm",bad],
+    ["Wys. całk. (segm.1)","",fmt(Y,0)+" cm",false],
+    ["Długość (segm.1)","",fmt(X,0)+" cm",false],
+    ["Kąt nachylenia","ideał 30–38°",fmt(ang,1)+"°",false]]);
+  document.getElementById("s-note").innerHTML="Segmentów: "+schodyState.segs.length+" · szer. "+fmt(w)+" cm · okładzina "+fmt(t)+" cm. <b>Podstopnica 1</b> = pełna wys.; kolejne = <b style=\"color:#DC2626\">wys.−grubość</b>. <b>Stopień poziomy</b> = głęb.+grubość. Każdy segment liczony i rysowany osobno.";
+}
+
+/* ============ SZYBA / BARIERKA (wiele tafli) ============ */
+var szybaState={segs:[]};
+function szVal(id){var e=document.getElementById(id);return e?(parseFloat(e.value)||0):0}
+function szNewSeg(cnt,h,d){var st=[];for(var i=0;i<cnt;i++)st.push({h:h,d:d,mh:false,md:false});return {count:cnt,steps:st,frez:2,frezOn:true,hA:113,hB:113,start:'stopien',mirror:false,frezBok:2,frezBokOn:false,topMode:'prosta',corridor:0,notes:''};}
+function szybaBuildSegs(){
+  var n=Math.round(szVal("sz-segcount"));if(n<1)n=1;if(n>8)n=8;
+  var h=szVal("sz-h"),d=szVal("sz-d");if(!szybaState._sb)szybaState._sb=[];
+  if(n<szybaState.segs.length){szybaState._sb=szybaState.segs.slice(n).concat(szybaState._sb);szybaState.segs=szybaState.segs.slice(0,n);}
+  else{while(szybaState.segs.length<n)szybaState.segs.push(szybaState._sb.length?szybaState._sb.shift():szNewSeg(5,h,d));}
+  szybaEditors();renderSzyba();
+}
+function szStepRows(si){
+  var seg=szybaState.segs[si],html="";
+  seg.steps.forEach(function(st,i){
+    html+='<div class="srow"><span class="sn" id="szn'+si+'_'+i+'">Stopień '+(i+1)+((st.mh||st.md)?' ✎':'')+'</span>'
+      +'<span class="inp"><input type="number" value="'+st.h+'" oninput="szStepEdit('+si+','+i+',&#39;h&#39;,this.value)"><span class="u">cm</span></span>'
+      +'<span class="inp"><input type="number" value="'+st.d+'" oninput="szStepEdit('+si+','+i+',&#39;d&#39;,this.value)"><span class="u">cm</span></span></div>';
+  });
+  return html;
+}
+function szybaEditors(){
+  var c=document.getElementById("sz-segeditors");if(!c)return;var html="";
+  szybaState.segs.forEach(function(seg,si){
+    html+='<div style="margin-top:14px;padding-top:10px;border-top:1px solid #EEF1F3">';
+    html+='<div style="font-weight:700;font-size:13px;margin-bottom:6px">Tafla '+(si+1)+'</div>';
+    html+='<div class="row"><label class="f">Stopni<span class="inp"><input id="sz-cnt'+si+'" type="number" value="'+seg.count+'" oninput="szybaSegCount('+si+')"><span class="u">szt</span></span></label>'
+       +'<label class="f">Frez dolny<span class="inp"><input id="sz-frez'+si+'" type="number" value="'+seg.frez+'" oninput="szSegParam('+si+',&#39;frez&#39;,this.value)"><span class="u">cm</span></span></label></div>';
+    html+='<div class="row" style="margin-top:4px"><label class="f">Frez boczny<span class="inp"><input id="sz-frezb'+si+'" type="number" value="'+(seg.frezBok||0)+'" oninput="szSegParam('+si+',&#39;frezBok&#39;,this.value)"><span class="u">cm</span></span></label><span></span></div>';
+    html+='<div class="seg" id="szfrez'+si+'" style="margin-top:6px"><button class="'+(seg.frezOn!==false?'on':'')+'" onclick="szSetFrez('+si+',true)">Frez dolny: tak</button><button class="'+(seg.frezOn===false?'on':'')+'" onclick="szSetFrez('+si+',false)">nie</button></div>';
+    html+='<div class="seg" id="szfrezb'+si+'" style="margin-top:6px"><button class="'+(seg.frezBokOn===true?'on':'')+'" onclick="szSetFrezBok('+si+',true)">Frez boczny: tak</button><button class="'+(seg.frezBokOn!==true?'on':'')+'" onclick="szSetFrezBok('+si+',false)">nie</button></div>';
+    html+='<div class="row"><label class="f">Wys. pocz.<span class="inp"><input id="sz-hA'+si+'" type="number" value="'+seg.hA+'" oninput="szSegParam('+si+',&#39;hA&#39;,this.value)"><span class="u">cm</span></span></label>'
+       +'<label class="f">Wys. końc.<span class="inp"><input id="sz-hB'+si+'" type="number" value="'+seg.hB+'" oninput="szSegParam('+si+',&#39;hB&#39;,this.value)"><span class="u">cm</span></span></label></div>';
+    html+='<div class="seg" id="szstart'+si+'" style="margin-top:7px"><button class="'+(seg.start==='stopien'?'on':'')+'" onclick="szSetStart('+si+',false)">Start: od 1 stopnia</button><button class="'+(seg.start==='podloga'?'on':'')+'" onclick="szSetStart('+si+',true)">Start: od podłogi</button></div>';
+    html+='<div class="seg" id="szdir'+si+'" style="margin-top:6px"><button class="'+(!seg.mirror?'on':'')+'" onclick="szSetDir('+si+',false)">→ od lewej</button><button class="'+(seg.mirror?'on':'')+'" onclick="szSetDir('+si+',true)">← od prawej (lustro)</button></div>';
+    html+='<div class="seg" id="sztop'+si+'" style="margin-top:6px"><button class="'+(seg.topMode!=='lamana'?'on':'')+'" onclick="szSetTop('+si+',false)">Góra: prosta</button><button class="'+(seg.topMode==='lamana'?'on':'')+'" onclick="szSetTop('+si+',true)">Góra: łamana (podłoga)</button></div>';
+    html+='<label class="f" style="margin-top:7px">Długość korytarza (dla góry łamanej)<span class="inp"><input id="sz-corr'+si+'" type="number" value="'+(seg.corridor||0)+'" oninput="szSegParam('+si+',&#39;corridor&#39;,this.value)"><span class="u">cm</span></span></label>';
+    html+='<div class="steplist" id="sz-sl'+si+'" style="margin-top:8px">'+szStepRows(si)+'</div></div>';
+  });
+  c.innerHTML=html;
+}
+function szybaSegCount(si){
+  var seg=szybaState.segs[si];if(!seg)return;
+  var n=Math.round(szVal("sz-cnt"+si));if(n<1)n=1;if(n>40)n=40;
+  var h=szVal("sz-h"),d=szVal("sz-d");if(!seg._buf)seg._buf=[];
+  if(n<seg.steps.length){seg._buf=seg.steps.slice(n).concat(seg._buf);seg.steps=seg.steps.slice(0,n);}
+  else{while(seg.steps.length<n)seg.steps.push(seg._buf.length?seg._buf.shift():{h:h,d:d,mh:false,md:false});}
+  seg.count=n;var sl=document.getElementById("sz-sl"+si);if(sl)sl.innerHTML=szStepRows(si);renderSzyba();
+}
+function szybaGlobal(){
+  var h=szVal("sz-h"),d=szVal("sz-d");
+  szybaState.segs.forEach(function(seg,si){seg.steps.forEach(function(st){if(!st.mh)st.h=h;if(!st.md)st.d=d;});var sl=document.getElementById("sz-sl"+si);if(sl)sl.innerHTML=szStepRows(si);});
+  renderSzyba();
+}
+function szStepEdit(si,i,f,v){var seg=szybaState.segs[si];if(!seg)return;var st=seg.steps[i];if(!st)return;v=parseFloat(v)||0;
+  if(f==='h'){st.h=v;st.mh=true;}else{st.d=v;st.md=true;}var e=document.getElementById("szn"+si+"_"+i);if(e)e.textContent="Stopień "+(i+1)+" ✎";renderSzyba();}
+function szSegParam(si,k,v){var seg=szybaState.segs[si];if(seg){seg[k]=parseFloat(v)||0;renderSzyba();}}
+function szSetStart(si,floor){var seg=szybaState.segs[si];if(!seg)return;seg.start=floor?'podloga':'stopien';var g=document.getElementById('szstart'+si);if(g){var bs=g.querySelectorAll('button');bs[0].classList.toggle('on',!floor);bs[1].classList.toggle('on',floor);}renderSzyba();}
+function szSetDir(si,mir){var seg=szybaState.segs[si];if(!seg)return;seg.mirror=mir;var g=document.getElementById('szdir'+si);if(g){var bs=g.querySelectorAll('button');bs[0].classList.toggle('on',!mir);bs[1].classList.toggle('on',mir);}renderSzyba();}
+function szSetFrez(si,on){var seg=szybaState.segs[si];if(!seg)return;seg.frezOn=on;var g=document.getElementById('szfrez'+si);if(g){var bs=g.querySelectorAll('button');bs[0].classList.toggle('on',on);bs[1].classList.toggle('on',!on);}renderSzyba();}
+function szSetFrezBok(si,on){var seg=szybaState.segs[si];if(!seg)return;seg.frezBokOn=on;var g=document.getElementById('szfrezb'+si);if(g){var bs=g.querySelectorAll('button');bs[0].classList.toggle('on',on);bs[1].classList.toggle('on',!on);}renderSzyba();}
+function szSetTop(si,lam){var seg=szybaState.segs[si];if(!seg)return;seg.topMode=lam?'lamana':'prosta';var g=document.getElementById('sztop'+si);if(g){var bs=g.querySelectorAll('button');bs[0].classList.toggle('on',!lam);bs[1].classList.toggle('on',lam);}renderSzyba();}
+function szNotes(si,v){var seg=szybaState.segs[si];if(seg)seg.notes=v;}
+function szArrow(id,col,fs){return '<marker id="'+id+'" markerWidth="12" markerHeight="12" refX="'+(7*fs/16)+'" refY="'+(5*fs/16)+'" orient="auto" markerUnits="userSpaceOnUse" viewBox="0 0 10 10"><path d="M0,0 L10,5 L0,10" fill="'+col+'" transform="scale('+(fs/16)+')"/></marker>';}
+function szdim(x1,y1,x2,y2,label,off,vert,fs,sw,col,mk,tick){
+  var ox=vert?off:0,oy=vert?0:off,ax1=x1+ox,ay1=y1+oy,ax2=x2+ox,ay2=y2+oy;
+  var tx=(x1+x2)/2+(vert?off+fs*0.95:0),ty=(y1+y2)/2+(vert?0:off+fs*1.05),rot=vert?' transform="rotate(-90 '+tx+' '+ty+')"':'';
+  var mid;
+  if(tick){var tl=fs*0.36;
+    mid='<line x1="'+ax1+'" y1="'+ay1+'" x2="'+ax2+'" y2="'+ay2+'" stroke-width="'+(sw*0.75)+'"/>'
+      +(vert?('<line x1="'+(ax1-tl)+'" y1="'+ay1+'" x2="'+(ax1+tl)+'" y2="'+ay1+'" stroke-width="'+(sw*0.75)+'"/><line x1="'+(ax2-tl)+'" y1="'+ay2+'" x2="'+(ax2+tl)+'" y2="'+ay2+'" stroke-width="'+(sw*0.75)+'"/>')
+            :('<line x1="'+ax1+'" y1="'+(ay1-tl)+'" x2="'+ax1+'" y2="'+(ay1+tl)+'" stroke-width="'+(sw*0.75)+'"/><line x1="'+ax2+'" y1="'+(ay2-tl)+'" x2="'+ax2+'" y2="'+(ay2+tl)+'" stroke-width="'+(sw*0.75)+'"/>'));
+  } else { mid='<line x1="'+ax1+'" y1="'+ay1+'" x2="'+ax2+'" y2="'+ay2+'" marker-start="url(#'+mk+')" marker-end="url(#'+mk+')"/>'; }
+  return '<g stroke="'+col+'" stroke-width="'+sw+'" fill="'+col+'"><line x1="'+x1+'" y1="'+y1+'" x2="'+ax1+'" y2="'+ay1+'" opacity="0.32"/><line x1="'+x2+'" y1="'+y2+'" x2="'+ax2+'" y2="'+ay2+'" opacity="0.32"/>'+mid+'<text x="'+tx+'" y="'+ty+'" font-size="'+fs+'" font-weight="600" font-family="ui-monospace,monospace" text-anchor="middle" stroke="none"'+rot+'>'+label+'</text></g>';
+}
+function segGlassSVG(seg){
+  var steps=seg.steps,dOn=(seg.frezOn!==false),d=dOn?seg.frez:0,bOn=(seg.frezBokOn===true),b=bOn?(seg.frezBok||0):0,hA=seg.hA,hB=seg.hB,floor=(seg.start==='podloga'),mir=seg.mirror;
+  var X=[0],Y=[0];
+  for(var i=0;i<steps.length;i++){X.push(X[i]+steps[i].d);Y.push(Y[i]+steps[i].h);}
+  var n=steps.length,run=X[n];
+  if(run<=0)return '<div class="err">Podaj dodatnie wymiary stopni.</div>';
+  var lamana=(seg.topMode==='lamana')&&n>=2,corr=lamana?(seg.corridor||0):0,fullRun=run+corr;
+  var gx=[0];for(var i=1;i<n;i++)gx.push(X[i]+b);gx.push(run);
+  var kinkX=X[n-1],topYA=Y[1]+hA,topYB=Y[n]+hB,kinkY=Y[n]+hB,botLeft=floor?-d:(Y[1]-d);
+  var topLen=lamana?(Math.sqrt(kinkX*kinkX+(kinkY-topYA)*(kinkY-topYA))+(fullRun-kinkX)):(Math.sqrt(run*run+(topYB-topYA)*(topYB-topYA))),flat=Math.abs(topYA-topYB)<0.6;
+  var maxY=Math.max(topYA,topYB,Y[n]),minY=Math.min(0,botLeft),Hh=maxY-minY;
+  var maxD=Math.max(fullRun,Hh),pad=maxD*0.18,fs=maxD/30,sw=fs/15;
+  var fy=function(y){return maxY-y;},MX=function(x){return mir?(fullRun-x):x;},MO=function(o){return mir?-o:o;};
+  var COLH="#2563EB",COLD="#EA580C",COLR="#DC2626",COLN="#2E5C6B";
+  var s='<svg viewBox="'+(-pad*1.95)+' '+(-pad*1.35)+' '+(fullRun+pad*3.5)+' '+(Hh+pad*3)+'"><defs>'+szArrow('szN',COLN,fs)+szArrow('szR',COLR,fs)+szArrow('szH',COLH,fs)+szArrow('szD',COLD,fs)+'</defs>';
+  if(floor)s+='<line x1="'+MX(-pad*0.4)+'" y1="'+fy(0)+'" x2="'+MX(fullRun)+'" y2="'+fy(0)+'" stroke="#7c5a25" stroke-width="'+(sw*0.9)+'" stroke-dasharray="'+(sw*3)+' '+(sw*2)+'"/>';
+  var sp=MX(0)+','+fy(0);
+  for(var i=0;i<n;i++)sp+=' '+MX(X[i])+','+fy(Y[i+1])+' '+MX(X[i+1])+','+fy(Y[i+1]);
+  if(corr>0)sp+=' '+MX(fullRun)+','+fy(Y[n]);
+  sp+=' '+MX(fullRun)+','+fy(0);
+  s+='<polygon points="'+sp+'" fill="#D9DEE3" stroke="var(--ink)" stroke-width="'+(sw*0.9)+'"/>';
+  var gp=[[0,topYA]];
+  if(lamana){gp.push([kinkX,kinkY],[fullRun,kinkY],[fullRun,Y[n]-d]);}else{gp.push([run,topYB],[run,Y[n]-d]);}
+  for(var i=n;i>=1;i--){gp.push([gx[i-1],Y[i]-d]);if(i>1)gp.push([gx[i-1],Y[i-1]-d]);}
+  if(floor)gp.push([0,botLeft]);
+  s+='<polygon points="'+gp.map(function(pp){return MX(pp[0])+','+fy(pp[1]);}).join(' ')+'" fill="rgba(70,150,190,0.24)" stroke="#2E6E8E" stroke-width="'+(sw*1.1)+'"/>';
+  if(lamana){s+='<polyline points="'+MX(0)+','+fy(topYA)+' '+MX(kinkX)+','+fy(kinkY)+' '+MX(fullRun)+','+fy(kinkY)+'" fill="none" stroke="#2E6E8E" stroke-width="'+(sw*1.5)+'"/>';s+='<text x="'+MX((kinkX+fullRun)/2)+'" y="'+(fy(kinkY)-fs*0.6)+'" font-size="'+(fs*0.64)+'" font-family="ui-monospace,monospace" fill="#2E6E8E" text-anchor="middle">wzdłuż podłogi</text>';}else{s+='<line x1="'+MX(0)+'" y1="'+fy(topYA)+'" x2="'+MX(run)+'" y2="'+fy(topYB)+'" stroke="#2E6E8E" stroke-width="'+(sw*1.5)+'"/>';}
+  var hAl=dOn?(fmtN(hA+d)+' ('+fmtN(hA)+'+'+fmtN(d)+' frez)'):fmtN(hA),hBl=dOn?(fmtN(hB+d)+' ('+fmtN(hB)+'+'+fmtN(d)+' frez)'):fmtN(hB);
+  s+=szdim(MX(0),fy(Y[1]-d),MX(0),fy(topYA),hAl,MO(-pad*0.58),true,fs*0.92,sw,COLR,'szR',true);
+  s+=szdim(MX(fullRun),fy(Y[n]-d),MX(fullRun),fy(topYB),hBl,MO(pad*0.58),true,fs*0.92,sw,COLR,'szR',true);
+  for(var i=0;i<n;i++){s+=szdim(MX(gx[i]),fy(0),MX(gx[i+1]),fy(0),fmtN(gx[i+1]-gx[i]),pad*0.24,false,fs*0.7,sw,COLD,'szD',true);if(bOn&&b>0&&(i===0||i===n-1)){var fn=(i===0?fmtN(steps[0].d)+'+'+fmtN(b)+' frez':fmtN(steps[n-1].d)+' -'+fmtN(b)+' frez');s+='<text x="'+MX((gx[i]+gx[i+1])/2)+'" y="'+(fy(0)+pad*0.24+fs*1.75)+'" font-size="'+(fs*0.58)+'" font-family="ui-monospace,monospace" fill="#DC2626" text-anchor="middle">'+fn+'</text>';}}
+  if(corr>0)s+=szdim(MX(run),fy(0),MX(fullRun),fy(0),fmtN(corr),pad*0.24,false,fs*0.72,sw,COLD,'szD',true);
+  s+=szdim(MX(0),fy(0),MX(fullRun),fy(0),fmtN(fullRun),pad*0.85,false,fs,sw,COLN,'szN',true);
+  for(var i=0;i<n;i++){if(i===0&&!floor)continue;s+=szdim(MX(gx[i]),fy(Y[i]),MX(gx[i]),fy(Y[i+1]),fmtN(steps[i].h),MO(-pad*0.13),true,fs*0.72,sw,COLH,'szH',true);}
+  if(floor)s+='<text x="'+MX(run*0.5)+'" y="'+(fy(0)+fs*1.3)+'" font-size="'+(fs*0.7)+'" font-family="ui-monospace,monospace" fill="#7c5a25" text-anchor="middle">podłoga</text>';
+  s+='<text x="'+MX(fullRun*0.4)+'" y="'+(fy((topYA+topYB)/2)-fs*0.7)+'" font-size="'+(fs*0.7)+'" font-family="ui-monospace,monospace" fill="#2E6E8E" text-anchor="middle">górna krawędź '+fmtN(topLen)+' cm</text>';
+  s+='</svg>';
+  return s;
+}
+function renderSzyba(){
+  var out=document.getElementById("sz-output");if(!out)return;
+  if(!szybaState.segs||!szybaState.segs.length){szybaBuildSegs();return;}
+  var html="";
+  szybaState.segs.forEach(function(seg,si){
+    var X=0,Y=0;seg.steps.forEach(function(st){X+=st.d;Y+=st.h;});
+    var topLen=0;
+    html+='<div class="card"><div class="chead">Tafla '+(si+1)+' — rysunek + wymiary</div>';
+    html+='<div class="draw">'+segGlassSVG(seg)+'</div>';
+    html+='<table><tbody>';
+    function ir(k,v){return '<tr><td class="name">'+k+'</td><td style="text-align:right">'+v+'</td></tr>';}
+    html+=ir("Wys. początkowa","<b style=\"color:#DC2626\">"+fmtN(seg.hA)+" cm</b>")+ir("Wys. końcowa","<b style=\"color:#DC2626\">"+fmtN(seg.hB)+" cm</b>")
+       +ir("Frez dolny",(seg.frezOn===false?"nie":fmtN(seg.frez)+" cm"))+ir("Frez boczny",(seg.frezBokOn!==true?"nie":fmtN(seg.frezBok||0)+" cm"))+ir("Start",seg.start==='podloga'?"od podłogi":"od 1 stopnia")+ir("Góra",seg.topMode==='lamana'?"łamana (podłoga)":"prosta")+(seg.topMode==='lamana'?ir("Korytarz",fmtN(seg.corridor||0)+" cm"):"")
+       +ir("Liczba stopni",seg.steps.length)+ir("Długość (bieg)",fmtN(X)+" cm");
+    html+='</tbody></table>';
+    var prof="";seg.steps.forEach(function(st,i){prof+=(i?" · ":"")+fmtN(st.d)+"/"+fmtN(st.h);});
+    html+='<p class="note"><b style="color:#2563EB">wysokość</b> · <b style="color:#EA580C">głębokość</b> · <b style="color:#DC2626">wys. szyby</b>. '+(seg.mirror?"Lustro (od prawej). ":"")+(seg.start==='stopien'?"Leży na 1 stopniu — pierwszy pion pominięty. ":"Od podłogi — pokazany pion do podłogi. ")+'Profil: '+prof+'.</p>';
+    html+='<div class="chead" style="border-top:1px solid #EBEEF0">Notatki dla szklarza (Tafla '+(si+1)+')</div>';
+    html+='<textarea oninput="szNotes('+si+',this.value)" placeholder="Np. szkło hartowane 10 mm, krawędzie polerowane..." style="width:100%;min-height:70px;border:none;padding:10px 16px;font:14px -apple-system,sans-serif;resize:vertical;outline:none;box-sizing:border-box;border-radius:0 0 10px 10px">'+(seg.notes||'')+'</textarea>';
+    html+='</div>';
+  });
+  out.innerHTML=html;
+}
+
+function renderAll(){renderBrama();renderFurtka();renderDouble();renderWycinka();renderSchody();renderSzyba();}
+
+/* ====== ZAPIS / WCZYTANIE PROJEKTU ====== */
+function collectState(){
+  var inputs={};
+  document.querySelectorAll('input,textarea').forEach(function(el){if(el.id&&el.type!=='file')inputs[el.id]=el.value;});
+  return {v:2,inputs:inputs,szyba:(typeof szybaState!=='undefined'?szybaState.segs:null),schody:(typeof schodyState!=='undefined'?schodyState.segs:null)};
+}
+function applyState(data){
+  if(!data)return;
+  try{
+    if(data.schody&&typeof schodyState!=='undefined'){schodyState.segs=JSON.parse(JSON.stringify(data.schody));schodyState._sb=[];}
+    if(data.szyba&&typeof szybaState!=='undefined'){szybaState.segs=JSON.parse(JSON.stringify(data.szyba));szybaState._sb=[];}
+    if(data.inputs)Object.keys(data.inputs).forEach(function(id){var el=document.getElementById(id);if(el&&el.type!=='file')el.value=data.inputs[id];});
+    if(typeof schodyEditors==='function')schodyEditors();
+    if(typeof szybaEditors==='function')szybaEditors();
+    renderAll();
+  }catch(e){}
+}
+function saveProject(){
+  try{
+    var nm=((document.getElementById('uwagi')||{}).value||'projekt').replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ _-]+/g,'').trim().replace(/\s+/g,'_').slice(0,40)||'projekt';
+    var blob=new Blob([JSON.stringify(collectState())],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mexakolor-'+nm+'.json';
+    document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},100);
+  }catch(e){alert('Nie udało się zapisać pliku.');}
+}
+function loadProject(file){
+  if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){try{applyState(JSON.parse(e.target.result));autoSave();}catch(err){alert('Nieprawidłowy plik projektu.');}};
+  r.readAsText(file);
+}
+function autoSave(){try{localStorage.setItem('mexakolor-autosave',JSON.stringify(collectState()));}catch(e){}}
+function autoRestore(){try{var s=localStorage.getItem('mexakolor-autosave');if(s)applyState(JSON.parse(s));}catch(e){}}
+
+schodyBuildSegs();
+szybaBuildSegs();
+renderAll();
+autoRestore();
+var _asT;document.addEventListener('input',function(){clearTimeout(_asT);_asT=setTimeout(autoSave,700);});
+if(inPreview()){document.getElementById("printhelp").style.display="block";}
+</script>
+</body>
+</html>
